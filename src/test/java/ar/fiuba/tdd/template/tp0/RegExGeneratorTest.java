@@ -12,7 +12,7 @@ public class RegExGeneratorTest {
 
     private static final int MAX_LENGTH = 100;
 
-    private boolean validate(String regEx, int numberOfResults) {
+    private boolean validate(String regEx, int numberOfResults) throws NotSupportedRegExException {
         RegExGenerator generator = new RegExGenerator(MAX_LENGTH);
         List<String> results = generator.generate(regEx, numberOfResults);
         // force matching the beginning and the end of the strings
@@ -28,72 +28,89 @@ public class RegExGeneratorTest {
     }
 
     @Test
-    public void testAnyCharacter() {
+    public void testAnyCharacter() throws NotSupportedRegExException {
         assertTrue(validate(".", 1));
     }
 
     @Test
-    public void testMultipleCharacters() {
+    public void testMultipleCharacters() throws NotSupportedRegExException {
         assertTrue(validate("...", 1));
     }
 
     @Test
-    public void testLiteral() {
+    public void testLiteral() throws NotSupportedRegExException {
         assertTrue(validate("\\@", 1));
     }
 
     @Test
-    public void testLiteralDotCharacter() {
+    public void testLiteralDotCharacter() throws NotSupportedRegExException {
         assertTrue(validate("\\@..", 1));
     }
 
     @Test
-    public void testZeroOrOneCharacter() {
+    public void testZeroOrOneCharacter() throws NotSupportedRegExException {
         assertTrue(validate("\\@.h?", 1));
     }
 
     @Test
-    public void testCharacterSet() {
+    public void testCharacterSet() throws NotSupportedRegExException {
         assertTrue(validate("[abc]", 1));
     }
 
     @Test
-    public void testCharacterSetWithQuantifiers() {
+    public void testCharacterSetWithQuantifiers() throws NotSupportedRegExException {
         assertTrue(validate("[abc]+", 1));
     }
 
     @Test
-    public void testCharacterSetWithQuantifiers2() {
+    public void testCharacterSetWithQuantifiers2() throws NotSupportedRegExException {
         assertTrue(validate("[abc]?", 1));
     }
 
     @Test
-    public void testCharacterSetWithQuantifiers3() {
+    public void testCharacterSetWithQuantifiers3() throws NotSupportedRegExException {
         assertTrue(validate("[abc]*", 4));
     }
 
     @Test
-    public void testCharacterSetWithQuantifiers4() {
+    public void testCharacterSetWithQuantifiers4() throws NotSupportedRegExException {
         assertTrue(validate("[abc]*a", 4));
     }
 
     @Test
-    public void testLiteralBrackets() {
+    public void testLiteralBrackets() throws NotSupportedRegExException {
         assertTrue(validate("\\[*", 4));
     }
 
     @Test
-    public void testLiteralSlashes() {
+    public void testLiteralSlashes() throws NotSupportedRegExException {
         assertTrue(validate("\\\\", 4));
     }
 
     @Test
-    public void testMultipleLiteralSlashes() {
+    public void testMultipleLiteralSlashes() throws NotSupportedRegExException {
         assertTrue(validate("\\\\*", 4));
     }
 
     @Test
-    public void testQuantifiersAndGroup() {
+    public void testLiteralChar() throws NotSupportedRegExException {
+        assertTrue(validate("[a\\[b]*", 4));
+    }
+
+    @Test
+    public void testLiteralChar2() throws NotSupportedRegExException {
+        assertTrue(validate("[a^b]*", 4));
+    }
+
+
+    @Test
+    public void testQuantifiersAndGroup() throws NotSupportedRegExException {
         assertTrue(validate(".*[XYZ]?a*.?", 4));
     }
+
+    @Test(expected = NotSupportedRegExException.class)
+    public void testInvalidRegEx() throws NotSupportedRegExException {
+        validate("[a[bc]*",1);
+    }
 }
+

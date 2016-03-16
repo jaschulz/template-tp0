@@ -15,7 +15,7 @@ public class RegExGenerator {
     private String getAllowedCharsGroup(String regEx) {
         String allowedChars;
         int index = regEx.indexOf("]");
-        allowedChars = regEx.substring(1, index);
+        allowedChars = regEx.substring(1, index).replace("\\","");
         return allowedChars;
     }
 
@@ -55,8 +55,7 @@ public class RegExGenerator {
         String allowedChars;
         String partialRegex;
         String quantifier;
-        for (int i = 0; i < myParser.getRegexListSize(); i++) {
-            RegExNode regExNode = myParser.getNodeAt(i);
+        for (RegExNode regExNode : myParser.getList()) {
             partialRegex = regExNode.getRegex();
             if (partialRegex.substring(0, 1).equalsIgnoreCase("[") && partialRegex.contains("]")) {
                 allowedChars = getAllowedCharsGroup(partialRegex);
@@ -73,7 +72,7 @@ public class RegExGenerator {
 
 
 
-    public List<String> generate(String regEx, int numberOfResults) {
+    public List<String> generate(String regEx, int numberOfResults)  throws NotSupportedRegExException  {
         List<String> resultStrings = new ArrayList<>();
         myParser = new Parser(regEx);
         String value;

@@ -5,7 +5,7 @@ import java.util.*;
 public class Parser {
     private List<RegExNode> regExList = new ArrayList<>();
 
-    public Parser(String regex) {
+    public Parser(String regex)  throws NotSupportedRegExException {
         generateList(regex);
     }
 
@@ -13,12 +13,46 @@ public class Parser {
         return regex.substring(0,1).equalsIgnoreCase("\\");
     }
 
-    private String getPartialRegex(String regex) {
+    private void testValidChar(String curChar) throws NotSupportedRegExException {
+        Set<String> invalidChars = new HashSet<>();
+        invalidChars.add("^");
+        invalidChars.add("$");
+        invalidChars.add("]");
+        invalidChars.add("[");
+        if (invalidChars.contains(curChar)) {
+            throw new NotSupportedRegExException("Regex no válida");
+        }
+    }
+
+    private String removeEscapedChar(String str) {
+        str = str.replace("\\^","");
+        str = str.replace("\\$","");
+        str = str.replace("\\[","");
+        str = str.replace("\\]","");
+        return  str;
+    }
+
+    private void testValidGroup(String group) throws NotSupportedRegExException {
+        /*Set<String> invalidChars = new HashSet<>();
+        invalidChars.add("^");
+        invalidChars.add("$");
+        invalidChars.add("]");
+        invalidChars.add("[");*/
+        group = removeEscapedChar(group);
+        if (group.startsWith("^") || group.contains("$") || group.contains("[") || group.contains("]") ) {
+            throw new NotSupportedRegExException("Regex no válida");
+        }
+    }
+
+    private String getPartialRegex(String regex) throws NotSupportedRegExException {
         String curChar = regex.substring(0, 1);
         if (curChar.equalsIgnoreCase("[") ) {
             int endGroup = regex.indexOf("]");
+            String group = regex.substring(1, endGroup);
+            testValidGroup(group);
             return regex.substring(0,endGroup + 1);
         } else {
+            testValidChar(curChar);
             return curChar;
         }
     }
@@ -39,7 +73,11 @@ public class Parser {
         return quantifiers.contains(charToTest);
     }
 
-    private void generateList(String regex) {
+    /*private void validateRegEx(String regex){
+
+    }*/
+
+    private void generateList(String regex)  throws NotSupportedRegExException {
         String partialRegex;
         String quantifier;
         while (regex.length() > 0) {
@@ -66,5 +104,9 @@ public class Parser {
 
     public RegExNode getNodeAt(int index) {
         return  regExList.get(index);
+    }
+
+    public List<RegExNode> getList() {
+        return regExList;
     }
 }

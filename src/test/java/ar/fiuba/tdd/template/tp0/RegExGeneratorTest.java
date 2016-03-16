@@ -10,10 +10,11 @@ import static org.junit.Assert.assertTrue;
 
 public class RegExGeneratorTest {
 
+    private static final int MAX_LENGTH = 100;
+
     private boolean validate(String regEx, int numberOfResults) {
-        RegExGenerator generator = new RegExGenerator();
-        // TODO: Uncomment parameters
-        List<String> results = generator.generate(/*regEx, numberOfResults*/);
+        RegExGenerator generator = new RegExGenerator(MAX_LENGTH);
+        List<String> results = generator.generate(regEx, numberOfResults);
         // force matching the beginning and the end of the strings
         Pattern pattern = Pattern.compile("^" + regEx + "$");
         return results
@@ -26,8 +27,6 @@ public class RegExGeneratorTest {
                     (item1, item2) -> item1 && item2);
     }
 
-    //TODO: Uncomment these tests
-    /*
     @Test
     public void testAnyCharacter() {
         assertTrue(validate(".", 1));
@@ -62,6 +61,39 @@ public class RegExGeneratorTest {
     public void testCharacterSetWithQuantifiers() {
         assertTrue(validate("[abc]+", 1));
     }
-    */
-    // TODO: Add more tests!!!
+
+    @Test
+    public void testCharacterSetWithQuantifiers2() {
+        assertTrue(validate("[abc]?", 1));
+    }
+
+    @Test
+    public void testCharacterSetWithQuantifiers3() {
+        assertTrue(validate("[abc]*", 4));
+    }
+
+    @Test
+    public void testCharacterSetWithQuantifiers4() {
+        assertTrue(validate("[abc]*a", 4));
+    }
+
+    @Test
+    public void testLiteralBrackets() {
+        assertTrue(validate("\\[*", 4));
+    }
+
+    @Test
+    public void testLiteralSlashes() {
+        assertTrue(validate("\\\\", 4));
+    }
+
+    @Test
+    public void testMultipleLiteralSlashes() {
+        assertTrue(validate("\\\\*", 4));
+    }
+
+    @Test
+    public void testQuantifiersAndGroup() {
+        assertTrue(validate(".*[XYZ]?a*.?", 4));
+    }
 }

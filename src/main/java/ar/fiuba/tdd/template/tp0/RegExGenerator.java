@@ -7,41 +7,42 @@ public class RegExGenerator {
 
     private int maxLength;
     private  Parser myParser;
+    private int available;
 
     public RegExGenerator(int maxLength) {
         this.maxLength = maxLength;
+        myParser = new Parser();
+        available = maxLength;
     }
 
-    private String getAllowedCharsGroup(String regEx) {
-        String allowedChars;
-        int index = regEx.indexOf("]");
-        allowedChars = regEx.substring(1, index).replace("\\","");
-        return allowedChars;
+    private String generateAllowedChars() {
+        StringBuilder allowedChars = new StringBuilder("");
+        for (int i = 0; i < 256 ; i++) {
+            allowedChars.append((char)i);
+        }
+        return allowedChars.toString();
     }
 
     private String getAllowedChars(String pattern) {
         if (pattern.equalsIgnoreCase(".")) {
-            return "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            return generateAllowedChars();
+        } else if (pattern.substring(0, 1).equalsIgnoreCase("[") && pattern.contains("]")) {
+            String allowedChars;
+            int index = pattern.length();
+            allowedChars = pattern.substring(1, index - 1).replace("\\","");
+            return allowedChars;
         }
         return pattern;
     }
 
-    public int calculateMinRep(String quantifier) {
-        return (quantifier.equalsIgnoreCase("*") || quantifier.equalsIgnoreCase("?")) ? 0 : 1;
-    }
-
-    public int calculateMaxRep(String quantifier) {
-        return (quantifier.equalsIgnoreCase("*") || quantifier.equalsIgnoreCase("+")) ? maxLength : 1;
-    }
-
-    private String getPassingValue(String quantifier, String allowedChars) {
+    private String getPassingValue(RegExNode regexNode, String allowedChars, int compulsoryLeft) {
         int minRep;
         int maxRep;
         StringBuilder value = new StringBuilder("");
         Random randRepetitions = new Random();
         Random randomChar = new Random();
-        minRep = calculateMinRep(quantifier);
-        maxRep = calculateMaxRep(quantifier);
+        minRep = regexNode.getQuantifierMin();
+        maxRep = regexNode.getQuantifierMax(available, compulsoryLeft);
         int repetitions = (randRepetitions.nextInt((maxRep - minRep) + 1) + minRep);
         for (int i = 0; i < repetitions; i++) {
             value.append(allowedChars.charAt(randomChar.nextInt(allowedChars.length())));
@@ -49,36 +50,43 @@ public class RegExGenerator {
         return value.toString();
     }
 
-
-    private String generateValue() {
-        StringBuilder value = new StringBuilder("");
+    private String generateCharsToAppend(RegExNode regExNode, int compulsoryLeft) {
         String allowedChars;
-        String partialRegex;
-        String quantifier;
+        allowedChars = getAllowedChars(regExNode.getRegex());
+        return getPassingValue(regExNode, allowedChars, compulsoryLeft);
+    }
+
+    private String generateValue() throws LengthNotSupportedException {
+        StringBuilder value = new StringBuilder("");
+        available = maxLength - myParser.getCompulsory();
+        int compulsoryLeft = myParser.getCompulsory();
+        if (available < 0) {
+            throw new LengthNotSupportedException("Largo no soportado");
+        }
         for (RegExNode regExNode : myParser.getList()) {
-            partialRegex = regExNode.getRegex();
-            if (partialRegex.substring(0, 1).equalsIgnoreCase("[") && partialRegex.contains("]")) {
-                allowedChars = getAllowedCharsGroup(partialRegex);
-            } else {
-                allowedChars = getAllowedChars(partialRegex);
+            String charsToAppend = generateCharsToAppend(regExNode, compulsoryLeft);
+            available = available - charsToAppend.length();
+            compulsoryLeft = compulsoryLeft - regExNode.getQuantifierMin();
+            value.append(charsToAppend);
+            if (available == 0 && compulsoryLeft == 0) {
+                return value.toString();
             }
-            quantifier = regExNode.getQuantifier();
-            value.append(getPassingValue(quantifier, allowedChars));
         }
         return value.toString();
     }
 
+    public void setAvailable(int available) {
+        this.available = available;
+    }
 
-
-
-
-    public List<String> generate(String regEx, int numberOfResults)  throws NotSupportedRegExException  {
+    public List<String> generate(String regEx, int numberOfResults) throws NotSupportedRegExException, LengthNotSupportedException  {
         List<String> resultStrings = new ArrayList<>();
-        myParser = new Parser(regEx);
+        myParser.generateList(regEx);
         String value;
         for (int j = 0; j < numberOfResults; j++) {
             value = generateValue();
             resultStrings.add(value);
+            setAvailable(maxLength);
         }
         return  resultStrings;
     }

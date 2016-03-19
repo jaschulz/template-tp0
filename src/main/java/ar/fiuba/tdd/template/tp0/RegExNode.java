@@ -18,4 +18,17 @@ public class RegExNode {
     public String getQuantifier() {
         return quantifier;
     }
+
+    public int getQuantifierMin() {
+        return (quantifier.equalsIgnoreCase("+") || quantifier.isEmpty() ) ? 1 : 0;
+    }
+
+    public int getQuantifierMax(int available, int compulsoryLeft) {
+        if (quantifier.equalsIgnoreCase("*") || quantifier.equalsIgnoreCase("+")) {
+            return (available - compulsoryLeft);
+        } else {
+            return 1;
+        }
+    }
+
 }
